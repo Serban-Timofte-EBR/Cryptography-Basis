@@ -219,7 +219,6 @@ public class CloudflareRandomBeacon {
 - **Timestamped**: Each beacon pulse is tied to a specific time (every 30 seconds)
 - **Distributed Trust**: No single entity can control or predict the output
 
-
 **Real-world Usage:**
 
 - **Video game procedural generation** - Minecraft worlds use seeds
@@ -253,7 +252,7 @@ public class CloudflareRandomBeacon {
 - Testing (need same "random" data every time)
 - General programming where security isn't critical
 
-**Security Gotcha:** 
+**Security Gotcha:**
 Never use basic PRNGs (like `Random`) for security! Use cryptographically secure PRNGs:
 
 ```java
@@ -290,3 +289,117 @@ Many systems combine both:
 2. Use that seed in a cryptographically secure PRNG for fast, secure random numbers
 
 This gives you the security of TRNG with the speed of PRNG!
+
+##### PRNG Good Examples
+
+- Yarrow - Developed by Bruce Schneier, Yarrow is a cryptographic PRNG that uses multiple entropy sources and is designed for high security applications. It employs a combination of entropy pools and a reseeding mechanism to ensure unpredictability.
+
+- ANSI X9.17 - This is a standard for generating cryptographic keys using a PRNG based on the DES encryption algorithm. It combines a seed value with a timestamp and encrypts it to produce pseudo-random output.
+
+- Blum Blum Shub - A cryptographically secure PRNG based on the difficulty of factoring large prime numbers. It generates random bits using modular arithmetic and is considered secure for cryptographic applications.
+
+1. Linear Congruential Generator (LCG) - One of the simplest and oldest PRNG algorithms, LCG generates a sequence of pseudo-random numbers using a linear equation. While not suitable for cryptographic purposes, it is widely used in simulations and games.
+
+    $$ X_{n+1} = (aX_n + c) \mod m $$
+
+    Where:
+
+    - \( X \) is the sequence of pseudo-random values
+    - \( a \) is the multiplier
+    - \( c \) is the increment
+    - \( m \) is the modulus
+
+2. Linear Feedback Shift Register (LFSR) - LFSRs use shift registers and feedback taps to generate pseudo-random sequences. They are efficient and can produce long periods, making them suitable for applications like digital communication and error correction.
+
+    **LFSR Visual Example**
+
+    Here's how a 4-bit Linear Feedback Shift Register works:
+
+    ```txt
+    Initial State: [1][0][1][1]
+                    ↑           ↑
+                    bit 3       bit 0
+
+    Feedback Taps: XOR between bit 3 and bit 2
+    ```
+
+    **Step-by-step operation:**
+
+    **How LFSR chooses XOR operands:**
+
+    The XOR operands are determined by the **feedback taps** - specific bit positions chosen based on primitive polynomials that ensure maximum period length.
+
+    **In our 4-bit example:**
+    - **Feedback taps**: positions 3 and 2 (counting from 0)
+    - **XOR operation**: Always between the bits at these fixed positions
+    - **Polynomial**: x⁴ + x³ + 1 (which translates to taps at positions 3 and 2)
+
+    ```txt
+    Step 0: [1][0][1][1] → Output: 1
+            XOR(bit3=1, bit2=1) = 0
+
+    Step 1: [0][1][0][1] → Output: 1  
+            XOR(bit3=0, bit2=0) = 0
+
+    Step 2: [0][0][1][0] → Output: 0
+            XOR(bit3=0, bit2=1) = 1
+
+    Step 3: [1][0][0][1] → Output: 1
+            XOR(bit3=1, bit2=0) = 1
+
+    Step 4: [1][1][0][0] → Output: 0
+            XOR(bit3=1, bit2=0) = 1
+
+    Step 5: [1][1][1][0] → Output: 0
+            XOR(bit3=1, bit2=1) = 0
+    ```
+
+    **Visual Representation:**
+
+    ```txt
+        ┌─────┐    ┌─────┐    ┌─────┐    ┌─────┐
+        │ b3  │────│ b2  │────│ b1  │────│ b0  │──── Output
+        └─────┘    └─────┘    └─────┘    └─────┘
+            │          │                      ▲
+            │          │                      │
+            │          └──────┐               │
+            │                 │               │
+            └─────────────────┼───────────────┘
+                            │
+                        ┌───▼───┐
+                        │  XOR  │
+                        └───────┘
+    ```
+
+    **Generated Sequence:** 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, ...
+
+    This 4-bit LFSR with feedback taps at positions 3 and 2 generates a pseudo-random sequence with a period of 15 (2⁴ - 1).
+
+3. Blum Blum Shub (BBS) - A cryptographically secure PRNG based on the difficulty of factoring large prime numbers. It generates random bits using modular arithmetic and is considered secure for cryptographic applications.
+
+    **Algorithm Steps:**
+    1. Choose two large prime numbers \( p \) and \( q \) such that 
+    $p \equiv q \equiv 3 \pmod{4}$
+    2. Compute \( n = p * q \).
+    3. Select a random seed \( x_0 \) such that \( x_0 \) is coprime to \( n \).
+    4. Generate the sequence using the recurrence relation:
+        $$ x_{i+1} = x_i^2 \mod n $$
+    5. The output bit is the least significant bit of \( x_i \).
+
+    **Example:**
+    - Let \( p = 7 \), \( q = 11 \) (both primes congruent to 3 mod 4)
+    - Compute \( n = 7 \times 11 = 77 \)
+    - Choose seed \( x_0 = 3 \) (coprime to 77)
+
+    **Sequence Generation:**
+
+    ```txt
+    i |   x_i   | x_i^2 mod 77 | Output Bit (LSB)
+    ----------------------------------------------
+    0 |   3     |     9        |        1
+    1 |   9     |     4        |        0
+    2 |   4     |     16       |        0
+    3 |   16    |     25       |        1
+    4 |   25    |     23       |        1
+    ...
+    ```
